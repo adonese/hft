@@ -51,27 +51,8 @@ import (
           BUY,25.43,4
 */
 
-/* The function is expected to return a STRING_ARRAY.
- * The function accepts STRING_ARRAY operations as parameter.
- */
-func runMatchingEngine(operations []string) []string {
-
-	// var orderBook OrderBook
-	for _, operation := range operations {
-		operationData := strings.Split(operation, ",")
-		switch operationData[0] {
-		case "INSERT":
-			// orderBook.insertOrder(operationData)
-		case "UPDATE":
-			// orderBook.updateOrder(operationData)
-		case "CANCEL":
-			// orderBook.cancelOrder(operationData)
-		}
-	}
-	return []string{}
-}
-
 func main() {
+
 	reader := bufio.NewReaderSize(os.Stdin, 16*1024*1024)
 
 	stdout, err := os.Create(os.Getenv("OUTPUT_PATH"))

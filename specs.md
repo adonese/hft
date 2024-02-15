@@ -2,6 +2,8 @@
 
 
 In this challenge, you will write a matching engine that manages multiple central limit order books. To fulfill the challenge, you will have to implement the interface as described in 'matching_engine.py*
+
+
 A matching engine matches orders from market participants. These matches will result in trades. A trade occurs when Participant A
 wants to buy a particular asset at an equal or higher price than Participant B is willing to sell that same asset.
 When someone wants to buy an asset, a market participant sends a buy order for a given symbol (e.g. FFLY). A sent order contains an id, symbol, side, limit price and volume. The limit price indicates that in the case of a buy order, you are willing to buy at the given
@@ -11,6 +13,8 @@ The order will be matched with the opposite side until either the volume of the 
 were inserted earlier are matched first.
 Two operations can be applied to an order once it is in the order book; "cancel' and "update." A cancel removes the order from the order book. An update changes the price and/or volume of the order. An update causes the order to lose time priority in
 the order book, unless the only change to the order is that the volume is decreased. If the order price is updated, it needs to be re-evaluated for potential matches.
+
+
 Examples
 Suppose the order book has the following open orders:
 
@@ -86,3 +90,66 @@ We are able to succesfully match orders and make trades on one symbol. That is a
     - order_id is provided, so we won't have to worry about ordering
     - now, each item belongs to a dictionry
     - now, do i need to have a lock and a global order book to store all of the trades, or not? it feels yes, but i am not sure
+
+
+
+Expected [
+    FFLY,46,3,2,4
+    FFLY,45.95,1,5,1
+    FFLY,45.95,1,6,1
+    FFLY,45.95,1,7,3
+    ===FFLY===
+    SELL,46,5 
+    BUY,45.95,16
+
+    ], but got
+    
+    FFLY,45.95,1,5,1 
+    FFLY,45.95,1,6,1 
+    FFLY,45.95,1,7,1 
+    ===FFLY=== 
+    SELL,46.00,8 
+    BUY,45.95,2 BUY,45.95,6 
+    BUY,45.95,12
+    ]
+
+
+[FFLY,46,3,2,4 FFLY,45.95,1,5,1 FFLY,45.95,1,6,1 FFLY,45.95,1,7,3 ===FFLY=== SELL,46,5 BUY,45.95,16]
+
+, but got
+
+[FFLY,46,3,2,4 FFLY,45.95,1,5,1 FFLY,45.95,1,6,1 FFLY,45.95,1,7,1 ===FFLY=== SELL,46,5 BUY,45.95,4 BUY,45.95,12]
+FAIL
+
+[FFLY,46,3,2,4 FFLY,45.95,1,5,1 FFLY,45.95,1,6,1 FFLY,45.95,1,7,3 ===FFLY=== SELL,46,5 BUY,45.95,16]
+
+[FFLY,46,3,2,4 ===FFLY=== SELL,46,5 SELL,45.95,1 SELL,45.95,1 SELL,45.95,1 BUY,45.95,5 BUY,45.95,12]
+
+Running tool: /usr/local/go/bin/go test -timeout 30s -run ^TestRunMatchingEngine$ github.com/adonese/bluefin
+
+[FFLY,46,3,2,4 FFLY,45.95,1,5,1 FFLY,45.95,1,6,1 FFLY,45.95,1,7,3 ===FFLY=== SELL,46,5 BUY,45.95,16], but got 
+[FFLY,46,3,2,4 ===FFLY=== SELL,46,5 SELL,45.95,1 SELL,45.95,1 SELL,45.95,1 BUY,45.95,5 BUY,45.95,12]
+
+
+
+--- FAIL: TestRunMatchingEngine (0.00s)
+    --- FAIL: TestRunMatchingEngine/Test_Case_5 (0.00s)
+        /Users/adonese/src/seed/main_test.go:102: Expected 
+[FFLY,46,3,2,4 FFLY,45.95,1,5,1 FFLY,45.95,1,6,1 FFLY,45.95,1,7,3 ===FFLY=== SELL,46,5 BUY,45.95,16]
+, but got 
+[FFLY,46,3,2,4 ===FFLY=== SELL,46,5 SELL,45.95,1 SELL,45.95,1 SELL,45.95,1 BUY,45.95,5 BUY,45.95,12]
+    --- FAIL: TestRunMatchingEngine/Test_Case_4 (0.00s)
+        /Users/adonese/src/seed/main_test.go:102: Expected [FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.24,9 SELL,14.237,8 SELL,14.234,2 BUY,14.23,3], but got [===FFLY=== SELL,14.24,9 SELL,14.237,8 SELL,14.234,25 BUY,14.235,6 BUY,14.234,5 BUY,14.235,12 BUY,14.23,3]
+
+
+
+Expected 
+[FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.24,9 SELL,14.237,8 SELL,14.234,2 BUY,14.23,3], but got 
+[FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.234,2 SELL,14.24,9 SELL,14.237,8 BUY,14.23,3]
+
+[FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.24,9 SELL,14.237,8 SELL,14.234,2 BUY,14.23,3], but got 
+[FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.237,8 SELL,14.24,9 SELL,14.234,2 BUY,14.23,3]
+
+Expected 
+[FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.24,9 SELL,14.237,8 SELL,14.234,2 BUY,14.23,3], but got 
+[FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.234,2 SELL,14.237,8 SELL,14.24,9 BUY,14.23,3]
