@@ -603,14 +603,3 @@ func (ob *OrderBook) PrintState() {
 		fmt.Printf("ID=%d, Price=%f, Volume=%d\n", order.ID, order.Price, order.Volume)
 	}
 }
-
-// Helper function to aggregate orders by price, summing up volumes
-func aggregateOrders(orders *MinHeap) map[float64]int {
-	aggregated := make(map[float64]int)
-	for _, order := range *orders {
-		if !order.Cancelled {
-			aggregated[order.Price] += order.Volume
-		}
-	}
-	return aggregated
-}
