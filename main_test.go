@@ -103,10 +103,10 @@ func TestRunMatchingEngine(t *testing.T) {
 			},
 
 			expected: []string{
+				"FFLY,12.5,8,3,2",
+				"FFLY,12.5,2,3,1",
 				"===FFLY===",
-				"SELL,12.1,8",
-				"SELL,12.2,5",
-				"BUY,12.5,10",
+				"SELL,12.2,3",
 			},
 		},
 		{
@@ -118,12 +118,9 @@ func TestRunMatchingEngine(t *testing.T) {
 				"UPDATE,2,47,-1",
 			},
 			expected: []string{
-				// Expected output needs to be adjusted based on the specific logic of your matching engine
-				// This is a placeholder assuming only matching happens without any trades being executed due to the update operation
+				"FFLY,47,5,3,1",
+				"FFLY,47,4,3,2",
 				"===FFLY===",
-				"SELL,47,9",
-				"BUY,47,5",
-				"BUY,47,5", // Assuming order 2 is updated with volume decreased by 1, making it 5
 			},
 		},
 		{
@@ -131,17 +128,15 @@ func TestRunMatchingEngine(t *testing.T) {
 			input: []string{
 				"INSERT,1,FFLY,BUY,47,5",
 				"INSERT,2,FFLY,BUY,47,6",
-				"INSERT,3,FFLY,SELL,47,9",
-				"UPDATE,1,45,2",
-				"UPDATE,5,45,2", // Assuming this is a typo since order 5 hasn't been inserted. It might be "UPDATE,2,45,2" or another valid operation.
+				"INSERT,3,FFLY,SELL,47,9", // this should be zero
+				"UPDATE,1,45,2",           // one is gone, no-op
+				"UPDATE,5,45,2",           // five is no-existent, no-op
 			},
 			expected: []string{
-				// Expected output needs adjustment based on your matching engine's logic
-				// Placeholder values assuming updates change order prices and volumes
+				"FFLY,47,5,3,1",
+				"FFLY,47,4,3,2",
 				"===FFLY===",
-				"SELL,47,9",
-				"BUY,47,6", // Assuming no update for order 2, so it remains the same
-				// The expected results for updates on order 1 and the typo for order 5 need clarification
+				"BUY,47,2",
 			},
 		},
 	}

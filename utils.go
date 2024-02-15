@@ -265,9 +265,15 @@ func (ob *OrderBook) Update(orderID int, newPrice float64, newVolume int) {
 		return
 	}
 
+	if existingOrder.Volume <= 0 {
+		fmt.Println("Order already at zero volume.")
+		return
+
+	}
+
 	fmt.Printf("Found existing order: %+v\n", existingOrder)
 
-	if newVolume == 0 {
+	if newVolume <= 0 {
 		fmt.Println("Order updated to zero volume, treating as cancellation.")
 		ob.removeOrderFromHeap(existingOrder)
 		existingOrder.Cancelled = true
