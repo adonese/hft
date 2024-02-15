@@ -14,6 +14,26 @@ func TestRunMatchingEngine(t *testing.T) {
 	}{
 
 		{
+			name: "test case 10",
+			input: []string{
+				/*
+					[INSERT,1,FFLY,BUY,47,5 INSERT,2,FFLY,BUY,47,6 INSERT,3,FFLY,SELL,47,9 UPDATE,2,47,-1]
+
+				*/
+				"INSERT,1,FFLY,BUY,47,5",
+				"INSERT,2,FFLY,BUY,47,6",
+				"INSERT,3,FFLY,SELL,47,9",
+				"UPDATE,2,47,-1",
+			},
+			expected: []string{
+				"FFLY,47,5,3,1",
+				"FFLY,47,4,3,2",
+				"===FFLY===",
+				"BUY,47,2",
+			},
+		},
+
+		{
 			name: "Test Case 5",
 			input: []string{
 				"INSERT,1,FFLY,BUY,45.95,5",
@@ -97,32 +117,22 @@ func TestRunMatchingEngine(t *testing.T) {
 		},
 		{name: "Test case 6",
 			input: []string{
+				/*
+					[INSERT,1,FFLY,SELL,12.2,5 INSERT,2,FFLY,SELL,12.1,8, INSERT,3,FFLY,BUY,12.5,10]
+				*/
 				"INSERT,1,FFLY,SELL,12.2,5",
 				"INSERT,2,FFLY,SELL,12.1,8",
 				"INSERT,3,FFLY,BUY,12.5,10",
 			},
 
 			expected: []string{
-				"FFLY,12.5,8,3,2",
-				"FFLY,12.5,2,3,1",
+				"FFLY,12.1,8,3,2",
+				"FFLY,12.2,2,3,1",
 				"===FFLY===",
 				"SELL,12.2,3",
 			},
 		},
-		{
-			name: "test case 10",
-			input: []string{
-				"INSERT,1,FFLY,BUY,47,5",
-				"INSERT,2,FFLY,BUY,47,6",
-				"INSERT,3,FFLY,SELL,47,9",
-				"UPDATE,2,47,-1",
-			},
-			expected: []string{
-				"FFLY,47,5,3,1",
-				"FFLY,47,4,3,2",
-				"===FFLY===",
-			},
-		},
+
 		{
 			name: "test case 11",
 			input: []string{

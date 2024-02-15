@@ -6,11 +6,12 @@ In this challenge, you will write a matching engine that manages multiple centra
 
 A matching engine matches orders from market participants. These matches will result in trades. A trade occurs when Participant A
 wants to buy a particular asset at an equal or higher price than Participant B is willing to sell that same asset.
-When someone wants to buy an asset, a market participant sends a buy order for a given symbol (e.g. FFLY). A sent order contains an id, symbol, side, limit price and volume. The limit price indicates that in the case of a buy order, you are willing to buy at the given
-price or lower. In the case of a sell order, the limit price indicates that you are willing to sell at the given price or higher.
+When someone wants to buy an asset, a market participant sends a buy order for a given symbol (e.g. FFLY). A sent order contains an id, symbol, side, limit price and volume. The limit price indicates that in the case of a buy order, you are willing to buy at the given price or lower. In the case of a sell order, the limit price indicates that you are willing to sell at the given price or higher.
+
 All orders are managed in a central limit order book which has two sides, the buy side and the sell side. If a new order is received by the matching engine, it first checks whether it can match with orders already in the order book on the opposite side.
 The order will be matched with the opposite side until either the volume of the new order is exhausted or until there are no orders on the opposite side with which the new order can match. The matching priority starts with price priority; the "best" price matches first. If there are multiple orders in the order book at the same price, these orders are matched with time priority; orders
 were inserted earlier are matched first.
+
 Two operations can be applied to an order once it is in the order book; "cancel' and "update." A cancel removes the order from the order book. An update changes the price and/or volume of the order. An update causes the order to lose time priority in
 the order book, unless the only change to the order is that the volume is decreased. If the order price is updated, it needs to be re-evaluated for potential matches.
 
@@ -153,3 +154,22 @@ Expected
 Expected 
 [FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.24,9 SELL,14.237,8 SELL,14.234,2 BUY,14.23,3], but got 
 [FFLY,14.235,6,8,2 FFLY,14.235,12,8,3 FFLY,14.234,5,8,4 ===FFLY=== SELL,14.234,2 SELL,14.237,8 SELL,14.24,9 BUY,14.23,3]
+
+
+
+FAILING TEST 6
+
+Operations AREEEEEEEEE======: 
+
+[INSERT,1,FFLY,SELL,12.2,5 INSERT,2,FFLY,SELL,12.1,8, INSERT,3,FFLY,BUY,12.5,10]
+
+
+FAIling test 9
+Operations AREEEEEEEEE======: 
+[INSERT,1,FFLY,BUY,47,5 INSERT,2,FFLY,BUY,47,6 INSERT,3,FFLY,SELL,47,9 UPDATE,2,47,-1]
+
+
+FAILING TEST 11
+Operations AREEEEEEEEE======: 
+[INSERT,1,FFLY,BUY,47,5 INSERT,2,FFLY,BUY,47,6 INSERT,3,FFLY,SELL,47,9 UPDATE,1,45,2 UPDATE,5,45,2]
+

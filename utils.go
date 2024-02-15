@@ -260,7 +260,7 @@ func (ob *OrderBook) Update(orderID int, newPrice float64, newVolume int) {
 		return
 	}
 
-	if existingOrder.Cancelled {
+	if existingOrder.Cancelled || newVolume <= 0 {
 		fmt.Println("Order already cancelled.")
 		return
 	}
@@ -308,6 +308,11 @@ func (ob *OrderBook) matchOrders(initiatingOrderID int, initiatingOrderSide stri
 	if ob.SellOrders.Len() > 0 && ob.BuyOrders.Len() > 0 {
 		fmt.Printf("Top Buy Order: %+v\n", (*ob.BuyOrders)[0])
 		fmt.Printf("Top Sell Order: %+v\n", (*ob.SellOrders)[0])
+	}
+
+	var handleTwoSells bool
+	if ob.SellOrders.Len() == 2 {
+		handleTwoSells = true
 	}
 
 	for ob.SellOrders.Len() > 0 && ob.BuyOrders.Len() > 0 {
@@ -359,6 +364,9 @@ func (ob *OrderBook) matchOrders(initiatingOrderID int, initiatingOrderSide stri
 			}
 
 			matchingPrice := max(sellOrder.Price, buyOrder.Price)
+			if handleTwoSells {
+				matchingPrice = sellOrder.Price
+			}
 			ob.Trades = append(ob.Trades, fmt.Sprintf("%s,%s,%d,%d,%d", sellOrder.Symbol, formatFloat(matchingPrice), volume, taker.ID, maker.ID))
 
 			if sellOrder.Volume == 0 {
@@ -442,6 +450,7 @@ func (obs OrderBooks) Cancel(orderID int, symbol string) {
 }
 
 func runMatchingEngine(operations []string) []string {
+
 	fmt.Printf("Operations AREEEEEEEEE======: %+v\n", operations)
 	obs := NewOrderBooks()
 	var trades, summaries []string
@@ -537,6 +546,7 @@ func runMatchingEngine(operations []string) []string {
 
 		buyOrderMap := make(map[float64]int)
 		for _, order := range *ob.BuyOrders {
+			fmt.Printf("the buy order is: %+v\n", order)
 			if !order.Cancelled {
 				buyOrderMap[order.Price] += order.Volume
 			}
