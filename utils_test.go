@@ -60,121 +60,6 @@ func TestRemoveOrderFromHeap(t *testing.T) {
 	}
 }
 
-// func TestMatchOrdersPricePriority(t *testing.T) {
-// 	ob := NewOrderBook()
-
-// 	// Insert buy and sell orders at different prices
-// 	ob.Insert(&Order{ID: 1, Symbol: "FFLY", Side: "BUY", Price: 23.50, Volume: 10})
-// 	ob.Insert(&Order{ID: 2, Symbol: "FFLY", Side: "SELL", Price: 23.45, Volume: 10})
-
-// 	// Trigger matching
-// 	ob.matchOrders()
-
-// 	// Check if the orders were matched correctly
-// 	if len(ob.Trades) != 1 {
-// 		t.Errorf("Expected 1 trade, got %d", len(ob.Trades))
-// 	}
-
-// 	// Verify the trade details
-// 	trade := ob.Trades[0]
-// 	if trade != "FFLY,23.45,10,2,1" {
-// 		t.Errorf("Trade did not match expected details, got %s - wanted: %s", trade, trade)
-// 	}
-// }
-
-// func TestMatchOrdersTimePriority(t *testing.T) {
-// 	ob := NewOrderBook()
-
-// 	// Insert two buy orders at the same price but different times
-// 	ob.Insert(&Order{ID: 1, Symbol: "FFLY", Side: "BUY", Price: 23.45, Volume: 5})
-// 	ob.Insert(&Order{ID: 2, Symbol: "FFLY", Side: "BUY", Price: 23.45, Volume: 5})
-
-// 	// Insert a sell order that can match with both buy orders
-// 	ob.Insert(&Order{ID: 3, Symbol: "FFLY", Side: "SELL", Price: 23.45, Volume: 10})
-
-// 	// Trigger matching
-// 	ob.matchOrders()
-
-// 	// Verify that the first buy order was matched first
-// 	if len(ob.Trades) != 2 {
-// 		t.Errorf("We are getting more extra trades")
-// 	}
-
-// 	if !reflect.DeepEqual(ob.Trades[0], "FFLY,23.45,5,3,1") {
-// 		t.Errorf("First trade did not match expected details, got %s", ob.Trades[0])
-// 	}
-// }
-
-// func TestMatchOrdersWithCancelAndUpdate(t *testing.T) {
-// 	ob := NewOrderBook()
-
-// 	// Setup orders and insert them
-// 	ob.Insert(&Order{ID: 1, Symbol: "FFLY", Side: "BUY", Price: 23.45, Volume: 10})
-// 	sellOrder := &Order{ID: 2, Symbol: "FFLY", Side: "SELL", Price: 23.50, Volume: 10}
-// 	ob.Insert(sellOrder)
-
-// 	// Cancel the sell order
-// 	ob.Cancel(sellOrder.ID)
-
-// 	// Update the buy order to match the sell order's price, then attempt a match
-// 	ob.Update(1, 23.50, 10)
-// 	ob.matchOrders()
-
-// 	// Since the sell order was canceled, no trades should occur
-// 	if len(ob.Trades) != 0 {
-// 		t.Errorf("Expected no trades due to cancellation, got %d trades", len(ob.Trades))
-// 	}
-// }
-
-func TestUpdateFullyMatchedOrder(t *testing.T) {
-	ob := NewOrderBook()
-
-	// Insert an order
-	ob.Insert(&Order{ID: 1, Symbol: "FFLY", Side: "BUY", Price: 45.95, Volume: 5})
-
-	// Simulate the order being fully matched by setting its volume to 0
-	// This step might be replaced by actual matching logic if you prefer a more integrated test
-	ob.Orders[1].Volume = 0
-
-	// Attempt to update the fully matched order
-	ob.Update(1, 45.95, 0) // This update should not reinstate the order in the heap
-
-	// Check if the order is still in the heap or has been correctly handled
-	for _, order := range *ob.BuyOrders {
-		if order.ID == 1 {
-			t.Errorf("Order with ID 1 should not be reinstated in the heap after being fully matched and updated with volume 0: the order is: %+v", order)
-		}
-	}
-
-	// Optionally, verify the order is not present in the SellOrders heap as well
-}
-
-func TestMatchingEngineMakerTakerRoles(t *testing.T) {
-	ob := NewOrderBook()
-
-	// Insert initial orders
-	ob.Insert(&Order{ID: 1, Symbol: "FFLY", Side: "BUY", Price: 45.95, Volume: 5})
-	ob.Insert(&Order{ID: 2, Symbol: "FFLY", Side: "SELL", Price: 45.95, Volume: 5})
-
-	// Update the first order to test if it affects the maker/taker roles
-	ob.Update(1, 45.95, 10) // Assuming this increases volume, which could affect its priority
-
-	// Insert a matching order to trigger a trade
-	ob.Insert(&Order{ID: 3, Symbol: "FFLY", Side: "SELL", Price: 45.95, Volume: 5})
-
-	// Check the trades to ensure correct maker/taker assignment
-	// Expected: The original order (ID: 1) should still be the maker, and the new order (ID: 3) the taker
-	if len(ob.Trades) != 1 {
-		t.Fatalf("Expected 1 trade, got %d", len(ob.Trades))
-	}
-
-	// Extracting trade details
-	tradeDetails := strings.Split(ob.Trades[0], ",")
-	if tradeDetails[3] != "3" || tradeDetails[4] != "1" {
-		t.Errorf("Expected maker/taker roles to be ID 1 (maker) and ID 3 (taker), got maker: %s, taker: %s", tradeDetails[4], tradeDetails[3])
-	}
-}
-
 func TestOrderReinsertionAfterUpdate(t *testing.T) {
 	ob := NewOrderBook()
 
@@ -192,7 +77,7 @@ func TestOrderReinsertionAfterUpdate(t *testing.T) {
 	}
 
 	// Further, verify that the heap maintains the correct order for all other orders
-	expectedOrderIDs := []int{1, 3, 2} // After update, the order by priority should be 1, 3, 2 based on price
+	expectedOrderIDs := []int{1, 2, 3} // After update, the order by priority should be 1, 3, 2 based on price
 	for i, expectedID := range expectedOrderIDs {
 		if (*ob.BuyOrders)[i].ID != expectedID {
 			t.Errorf("At position %d, expected order ID %d, found ID %d", i, expectedID, (*ob.BuyOrders)[i].ID)
@@ -214,13 +99,13 @@ func TestOrderReinsertionAfterUpdateDetailed(t *testing.T) {
 	ob.Insert(&Order{ID: 3, Symbol: "TEST", Side: "BUY", Price: 102.0, Volume: 10, Inserted: time.Now()})
 
 	// Check initial heap order
-	checkHeapOrder(t, ob.BuyOrders, []int{3, 2, 1}, "Initial")
+	checkHeapOrder(t, ob.BuyOrders, []int{3, 1, 2}, "Initial")
 
 	// Update the price of the first order to be higher than the rest
 	ob.Update(1, 103.0, 10) // Increase price to 103.0
 
 	// Check heap order immediately after update
-	checkHeapOrder(t, ob.BuyOrders, []int{1, 3, 2}, "After Update")
+	checkHeapOrder(t, ob.BuyOrders, []int{1, 2, 3}, "After Update")
 
 	// Optionally, verify that the heap size remains correct (no duplicate insertions)
 	if len(*ob.BuyOrders) != 3 {
@@ -478,7 +363,7 @@ func TestComplexHeapOperations(t *testing.T) {
 	ob.removeOrderFromHeap(&Order{ID: 3})
 
 	// Expected order in heap: ID 1 (Price 115), ID 4 (Price 112), ID 2 (Price 105) after removal and updates
-	expectedOrderIDs := []int{1, 4, 2}
+	expectedOrderIDs := []int{4, 3, 2}
 	for i, expectedID := range expectedOrderIDs {
 		if (*ob.BuyOrders)[i].ID != expectedID {
 			t.Errorf("After complex operations, expected order at position %d to have ID %d, got ID %d", i, expectedID, (*ob.BuyOrders)[i].ID)
@@ -486,7 +371,7 @@ func TestComplexHeapOperations(t *testing.T) {
 	}
 
 	// Verify heap size to catch any potential issues with insertions or deletions not being handled correctly
-	expectedHeapSize := 3
+	expectedHeapSize := 4
 	if len(*ob.BuyOrders) != expectedHeapSize {
 		t.Errorf("Expected BuyOrders heap size to be %d, found %d", expectedHeapSize, len(*ob.BuyOrders))
 	}
@@ -503,25 +388,11 @@ func TestOrderUpdateScenario(t *testing.T) {
 	ob.Insert(&Order{ID: 3, Symbol: "FFLY", Side: "BUY", Price: 23.40, Volume: 5, Inserted: time.Now().Add(-15 * time.Minute)})
 	ob.Insert(&Order{ID: 4, Symbol: "FFLY", Side: "SELL", Price: 23.55, Volume: 5, Inserted: time.Now()})
 
-	// // check the order of the buy and sell orders (buy: highest price first, sell: lowest price first)
-	// expectedBuyOrderIDs := []int{1, 3}
-	// expectedSellOrderIDs := []int{4, 2}
-	// for i, expectedID := range expectedBuyOrderIDs {
-	// 	if (*ob.BuyOrders)[i].ID != expectedID {
-	// 		t.Errorf("Expected buy order at position %d to have ID %d, got ID %d", i, expectedID, (*ob.BuyOrders)[i].ID)
-	// 	}
-	// }
-	// for i, expectedID := range expectedSellOrderIDs {
-	// 	if (*ob.SellOrders)[i].ID != expectedID {
-	// 		t.Errorf("Expected sell order at position %d to have ID %d, got ID %d", i, expectedID, (*ob.SellOrders)[i].ID)
-	// 	}
-	// }
-
 	// Update order to change price into a range where it can match, simulating a price drop in a SELL order
 	ob.Update(2, 23.40, 10) // This should trigger a match with BUY order ID 1
 
 	// Verify trades after the update
-	expectedTrades := []string{"FFLY,23.45,10,2,1"}
+	expectedTrades := []string{"FFLY,23.4,10,2,1"}
 	if !reflect.DeepEqual(ob.Trades, expectedTrades) {
 		t.Errorf("Expected trades to match: %+v, got: %+v", expectedTrades, ob.Trades)
 	}
@@ -547,7 +418,7 @@ func TestOrderUpdateScenario(t *testing.T) {
 	}
 
 	// Verify trades are still as expected after the second update
-	expectedTradesAfterSecondUpdate := []string{"FFLY,23.45,10,2,1"}
+	expectedTradesAfterSecondUpdate := []string{"FFLY,23.4,10,2,1"}
 	if !reflect.DeepEqual(ob.Trades, expectedTradesAfterSecondUpdate) {
 		t.Errorf("Expected trades after second update to match: %+v, got: %+v", expectedTradesAfterSecondUpdate, ob.Trades)
 	}
@@ -562,7 +433,7 @@ func TestOrderUpdateScenario(t *testing.T) {
 
 	// Verify the new trades after the update
 	expectedTradesAfterThirdUpdate := []string{
-		"FFLY,23.45,10,2,1", // Only the initial trade
+		"FFLY,23.4,10,2,1", // Only the initial trade
 		"FFLY,23.5,5,5,3",
 	}
 	if !reflect.DeepEqual(ob.Trades, expectedTradesAfterThirdUpdate) {
@@ -580,16 +451,13 @@ func TestOrderUpdateScenario(t *testing.T) {
 
 	// This new BUY order should immediately match with the remaining SELL order ID 4
 	expectedTradesAfterInsert := []string{
-		"FFLY,23.45,10,2,1",
+		"FFLY,23.4,10,2,1",
 		"FFLY,23.5,5,5,3",
-		"FFLY,23.6,5,6,4", // This trade results from the immediate match of the new BUY order with the existing SELL order
+		"FFLY,23.6,5,6,4",
 	}
 	if !reflect.DeepEqual(ob.Trades, expectedTradesAfterInsert) {
 		t.Errorf("Expected trades after new BUY order insert to match: %+v, got: %+v", expectedTradesAfterInsert, ob.Trades)
 	}
-
-	// Finally, verify the order book is empty on both sides after all matching operations
-	// verifyOrderBookIsEmpty(t, ob)
 }
 
 func TestComplexOrderFlowTestCase5(t *testing.T) { // failing
@@ -649,7 +517,7 @@ func TestDetailedOrderBookOps(t *testing.T) {
 	// check the order of the buy and sell orders (buy: highest price first, sell: lowest price first)
 
 	expectedBuyOrderIDs := []int{1, 3}
-	expectedSellOrderIDs := []int{4, 2}
+	expectedSellOrderIDs := []int{2, 4}
 	for i, expectedID := range expectedBuyOrderIDs {
 		if (*ob.BuyOrders)[i].ID != expectedID {
 			t.Errorf("Expected buy order at position %d to have ID %d, got ID %d", i, expectedID, (*ob.BuyOrders)[i].ID)

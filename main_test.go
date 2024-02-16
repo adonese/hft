@@ -16,10 +16,6 @@ func TestRunMatchingEngine(t *testing.T) {
 		{
 			name: "test case 10",
 			input: []string{
-				/*
-					[INSERT,1,FFLY,BUY,47,5 INSERT,2,FFLY,BUY,47,6 INSERT,3,FFLY,SELL,47,9 UPDATE,2,47,-1]
-
-				*/
 				"INSERT,1,FFLY,BUY,47,5",
 				"INSERT,2,FFLY,BUY,47,6",
 				"INSERT,3,FFLY,SELL,47,9",
