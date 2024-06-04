@@ -1,9 +1,3 @@
-
-
-
-In this challenge, you will write a matching engine that manages multiple central limit order books. To fulfill the challenge, you will have to implement the interface as described in 'matching_engine.py*
-
-
 A matching engine matches orders from market participants. These matches will result in trades. A trade occurs when Participant A
 wants to buy a particular asset at an equal or higher price than Participant B is willing to sell that same asset.
 When someone wants to buy an asset, a market participant sends a buy order for a given symbol (e.g. FFLY). A sent order contains an id, symbol, side, limit price and volume. The limit price indicates that in the case of a buy order, you are willing to buy at the given price or lower. In the case of a sell order, the limit price indicates that you are willing to sell at the given price or higher.
